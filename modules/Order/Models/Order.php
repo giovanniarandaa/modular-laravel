@@ -1,21 +1,22 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Order\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CartItem extends Model
+class Order extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'quantity',
         'user_id',
-        'product_id',
+        'status',
+        'total_in_cents',
+        'payment_gateway',
+        'payment_id',
     ];
     protected $casts = [
-        'quantity' => 'integer',
         'user_id' => 'integer',
-        'product_id' => 'integer',
+        'total_in_cents' => 'integer',
     ];
 }
