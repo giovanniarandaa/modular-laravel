@@ -14,6 +14,6 @@ class ProductTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        dd($product);
+        $this->assertNotEmpty($product->name);
     }
 }

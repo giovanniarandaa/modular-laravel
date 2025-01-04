@@ -6,9 +6,11 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as BaseRouteSer
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends  BaseRouteServiceProvider{
-    public function boot() {
+    public function boot(): void
+    {
         $this->routes(function () {
             Route::middleware('web')
+                ->as('order::')
                 ->group(__DIR__ . '/../routes.php');
         });
     }
