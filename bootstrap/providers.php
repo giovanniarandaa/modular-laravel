@@ -2,5 +2,6 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    Modules\Order\Providers\OrderServiceProvider::class
+    Modules\Order\Providers\OrderServiceProvider::class,
+    Modules\Product\Providers\ProductServiceProvider::class
 ];
