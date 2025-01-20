@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
             $table->unsignedInteger('total_in_cents');
             $table->string('status');
+            $table->string('payment_gateway');
+            $table->string('payment_id');
+            $table->foreignId('user_id');
+            $table->foreignId('order_id');
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('payments');
     }
 };
