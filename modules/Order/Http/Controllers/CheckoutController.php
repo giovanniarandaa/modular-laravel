@@ -4,17 +4,16 @@ namespace Modules\Order\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
+use Modules\Order\Actions\PurchaseItems;
+use Modules\Order\Exceptions\PaymentFailException;
 use Modules\Order\Http\Requests\CheckoutRequest;
-use Modules\Order\Models\Order;
 use Modules\Payment\PayBuddy;
 use Modules\Product\CartItemCollection;
-use Modules\Product\Warehourse\ProductStockManager;
-use RuntimeException;
 
 class CheckoutController extends Controller
 {
     public function __construct(
-        protected ProductStockManager $productStockManager
+       protected PurchaseItems $purchaseItems
     ) {
 
     }
@@ -22,43 +21,21 @@ class CheckoutController extends Controller
     {
         $carItems = CartItemCollection::fromCheckoutData($request->input('products'));
 
-        $orderTotalInCents = $carItems->totalInCents();
-
-        $payBuddy = PayBuddy::make();
-
         try {
-            $charge = $payBuddy->charge($request->input('payment_token'), $orderTotalInCents, 'Modularization');
-        }catch (RuntimeException) {
+            $order = $this->purchaseItems->handle(
+                items: $carItems,
+                paymentProvider: PayBuddy::make(),
+                paymentToken: $request->input('payment_token'),
+                userId: $request->user()->id
+            );
+        } catch (PaymentFailException) {
             throw ValidationException::withMessages([
                 'payment_token' => 'We could not complete your payment'
             ]);
         }
 
-        $order = Order::create([
-            'payment_id' => $charge['id'],
-            'status' => 'completed',
-            'total_in_cents' => $orderTotalInCents,
-            'user_id' => $request->user()->id
-        ]);
-
-        foreach($carItems->items() as $carItem) {
-            $this->productStockManager->decrement($carItem->product->id, $carItem->quantity);
-
-            $order->lines()->create([
-                'product_id' => $carItem->product->id,
-                'product_price_in_cents' => $carItem->product->priceInCents,
-                'quantity' => $carItem->quantity
-            ]);
-        }
-
-        $payment = $order->payments()->create([
-            'total_in_cents' => $orderTotalInCents,
-            'status' => 'paid',
-            'payment_gateway' => 'PayBuddy',
-            'payment_id' => $charge['id'],
-            'user_id' => $request->user()->id,
-        ]);
-
-        return response()->json([], 201);
+        return response()->json([
+            'order_url' => $order->url()
+        ], 201);
     }
 }
