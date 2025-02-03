@@ -84,7 +84,10 @@ class CheckoutControllerTest extends OrderTestCase
                     ['id' => $product->id, 'quantity' => 1]
                 ]
             ]));
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['payment_token']);
+
+        $this->assertEquals(0, Order::query()->count());
     }
 }
