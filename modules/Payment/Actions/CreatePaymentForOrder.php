@@ -9,6 +9,11 @@ use RuntimeException;
 
 class CreatePaymentForOrder
 {
+
+    /**
+     * Creates a new payment for an order and marks the order as paid
+     * @throws PaymentFailException If the payment token is invalid
+     */
     public function handle(
         int $orderId,
         int $userId,
