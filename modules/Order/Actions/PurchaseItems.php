@@ -3,13 +3,13 @@
 namespace Modules\Order\Actions;
 
 use Illuminate\Database\DatabaseManager;
-use Modules\Order\Exceptions\PaymentFailException;
+use Illuminate\Support\Facades\Mail;
+use Modules\Order\Mail\OrderReceived;
 use Modules\Order\Models\Order;
 use Modules\Payment\Actions\CreatePaymentForOrder;
 use Modules\Payment\PayBuddy;
 use Modules\Product\CartItemCollection;
 use Modules\Product\Warehourse\ProductStockManager;
-use RuntimeException;
 
 class PurchaseItems
 {
@@ -22,9 +22,10 @@ class PurchaseItems
 
     }
 
-    public function handle(CartItemCollection $items, PayBuddy $paymentProvider, string $paymentToken, int $userId): Order
+    public function handle(CartItemCollection $items, PayBuddy $paymentProvider, string $paymentToken, int $userId, string $userEmail): Order
     {
-        return $this->databaseManager->transaction(function () use ($paymentToken, $paymentProvider, $items, $userId) {
+        /** @var Order $order */
+        $order = $this->databaseManager->transaction(function () use ($paymentToken, $paymentProvider, $items, $userId) {
             $order = Order::startForUser($userId);
             $order->addLinesFromCartItems($items);
             $order->fulfill();
@@ -43,5 +44,9 @@ class PurchaseItems
 
             return $order;
         });
+
+        Mail::to($userEmail)->send(new OrderReceived($order->localizedTotal()));
+
+        return $order;
     }
 }

@@ -12,6 +12,7 @@ use Modules\Order\Exceptions\OrderMissingOrderLinesException;
 use Modules\Payment\Payment;
 use Modules\Product\CartItem;
 use Modules\Product\CartItemCollection;
+use NumberFormatter;
 
 class Order extends Model
 {
@@ -52,6 +53,11 @@ class Order extends Model
     public function url(): string
     {
         return route('order::orders.show', $this);
+    }
+
+    public function localizedTotal(): string
+    {
+        return (new NumberFormatter('en-US', NumberFormatter::CURRENCY))->formatCurrency($this->total_in_cents / 100, 'USD');
     }
 
     public static function startForUser(int $userId): Order
